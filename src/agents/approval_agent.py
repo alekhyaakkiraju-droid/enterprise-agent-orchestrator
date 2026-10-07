@@ -21,7 +21,7 @@ from ..state import OrchestratorState
 from ..telemetry import AgentTelemetry
 
 
-def mock_erp_s4hana_order_creation(payload: Dict[str, Any]) -> Dict[str, Any]:
+def mock_erp_s4hana_order_creation(payload: Dict[str, Any], timeout: float = 3.0) -> Dict[str, Any]:
     """Simulates an enterprise ERP (e.g. SAP S/4HANA) sales order creation endpoint."""
     return {
         "status": "CREATED",

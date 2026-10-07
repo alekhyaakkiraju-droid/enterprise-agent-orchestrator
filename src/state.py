@@ -13,6 +13,12 @@ from .models import (
 )
 
 
+def _bounded_telemetry_append(prev: Optional[List[str]], new: Optional[List[str]]) -> List[str]:
+    """Append telemetry events while bounding history to the most recent 100 entries."""
+    combined = (prev or []) + (new or [])
+    return combined[-100:]
+
+
 class OrchestratorState(TypedDict):
     """Shared state dictionary exchanged across agents and gates in the workflow."""
 
@@ -42,5 +48,5 @@ class OrchestratorState(TypedDict):
     # 7. Workflow Lifecycle State
     workflow_status: str
 
-    # 8. Monotonic Audit Telemetry (Append-only reducer across all agent handoffs)
-    telemetry_trail: Annotated[List[str], operator.add]
+    # 8. Monotonic Audit Telemetry (Bounded reducer across all agent handoffs)
+    telemetry_trail: Annotated[List[str], _bounded_telemetry_append]

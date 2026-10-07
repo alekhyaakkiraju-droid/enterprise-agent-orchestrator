@@ -225,3 +225,40 @@ def test_api_security_rbac():
             payload=DummyPayload(),
             mock_handler=lambda p: {"status": "SUCCESS"},
         )
+
+
+def test_bounded_telemetry_reduction():
+    """Validates that telemetry_trail is bounded to the most recent 100 entries."""
+    from src.state import _bounded_telemetry_append
+
+    initial = [f"event_{i}" for i in range(80)]
+    incoming = [f"event_{i}" for i in range(80, 130)]
+    reduced = _bounded_telemetry_append(initial, incoming)
+    assert len(reduced) == 100
+    assert reduced[0] == "event_30"
+    assert reduced[-1] == "event_129"
+
+
+def test_api_client_timeout_forwarding():
+    """Validates that SecureAPIClient forwards timeout parameter to handler."""
+    from pydantic import BaseModel
+
+    class DummyPayload(BaseModel):
+        test: str = "ok"
+
+    captured_timeout = None
+
+    def handler_with_timeout(payload, timeout=None):
+        nonlocal captured_timeout
+        captured_timeout = timeout
+        return {"status": "OK"}
+
+    SecureAPIClient.call_enterprise_api(
+        agent_id="TEST-AGENT",
+        role="erp_dispatcher",
+        endpoint_name="/test",
+        payload=DummyPayload(),
+        mock_handler=handler_with_timeout,
+        timeout_seconds=4.5,
+    )
+    assert captured_timeout == 4.5

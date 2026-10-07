@@ -55,8 +55,11 @@ class SecureAPIClient:
         while attempts <= max_retries:
             attempts += 1
             try:
-                # Simulate API call with timeout protection
-                response = mock_handler(data)
+                # Forward timeout_seconds to dispatch handler
+                try:
+                    response = mock_handler(data, timeout=timeout_seconds)
+                except TypeError:
+                    response = mock_handler(data)
                 duration_ms = round((time.time() - start_time) * 1000, 2)
 
                 AgentTelemetry.emit_event(
